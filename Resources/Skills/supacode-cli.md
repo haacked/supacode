@@ -213,6 +213,41 @@ action that would otherwise focus its target (`tab new`, `tab move`,
 `archive`/`unarchive`/`delete`/`pin`/`unpin`, and `tab close`); the `focus`,
 `zoom`, `equalize`, and `window` commands do not accept it.
 
+## Gotchas
+
+- `repo worktree-new` runs the repository's setup script in the new worktree's
+  first tab. If that script starts an agent, an agent is already running in
+  that tab. Open your own tab with `tab new`. The setup script does not run
+  again in it.
+- `-i` on `tab new` and `pane split` types the command into the new
+  terminal's shell and runs it. To start an agent with a prompt, pass the
+  prompt as an argument:
+
+  ```sh
+  WT=$(supacode repo worktree-new --branch fix-login)
+  TAB_ID=$(supacode tab new -w "$WT" -i 'claude "Fix the flaky login test"')
+  ```
+
+- Only the deprecated `surface focus -i` sends text to an existing tab. It
+  pastes the text followed by a Return. Claude Code turns on
+  bracketed paste, so it reads the Return as part of the pasted text and does
+  not submit the prompt. `surface focus -i ''` sends nothing, so it does not
+  submit it either.
+- `worktree delete` also deletes the worktree's local branch while "Delete
+  local branch with worktree" (Settings > Worktrees) is on. The setting is on
+  by default. The remote branch stays.
+- If the worktree's directory is gone and Supacode has already dropped it from
+  the sidebar, `worktree delete` fails with this error:
+  `No worktree matching the deeplink could be found. It may have been removed.`
+  Nothing is left to delete.
+- The CLI has no command to remove a repository. A repository whose directory
+  was deleted stays in the sidebar until someone chooses Remove Repository… in
+  the app.
+- Terminal tabs run inside `zmx`, so they keep running after Supacode quits.
+  Script tabs from `worktree run` do not use `zmx`. Turning on "Terminate
+  sessions on quit" (Settings > Terminal) stops the tabs at quit. The setting
+  is off by default. A reboot ends them either way.
+
 ## Flag Reference
 
 | Flag | Short | Default | Description |
